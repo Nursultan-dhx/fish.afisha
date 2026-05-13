@@ -1,0 +1,1 @@
+"""Fish Afisha bot package."""
