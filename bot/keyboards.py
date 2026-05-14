@@ -44,3 +44,30 @@ def get_movie_keyboard(genre_id: str, movie_index: int) -> InlineKeyboardMarkup:
             ]
         ]
     )
+
+
+def get_favorites_keyboard(favorites: list[dict]) -> InlineKeyboardMarkup:
+    rows = []
+
+    for index, movie in enumerate(favorites):
+        title = movie.get("title", "Unknown movie")
+
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=f"🗑 Remove {index + 1}. {title[:25]}",
+                    callback_data=f"remove_favorite_{index}"
+                )
+            ]
+        )
+
+    rows.append(
+        [
+            InlineKeyboardButton(
+                text="🎬 Choose genre",
+                callback_data="change_genre"
+            )
+        ]
+    )
+
+    return InlineKeyboardMarkup(inline_keyboard=rows)

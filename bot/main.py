@@ -5,7 +5,11 @@ from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 
 from bot.config import load_config
-from bot.keyboards import get_genres_keyboard, get_movie_keyboard
+from bot.keyboards import (
+    get_favorites_keyboard,
+    get_genres_keyboard,
+    get_movie_keyboard,
+)
 from bot.services.movie_fetcher import MovieFetcher
 from bot.storage.favorites_manager import FavoritesManager
 
@@ -22,6 +26,33 @@ async def start_command(message: Message):
         "Я помогу тебе найти фильм по жанру.\n"
         "Выбери жанр из списка ниже:",
         reply_markup=get_genres_keyboard()
+    )
+
+
+@dp.message(Command("favorites"))
+async def favorites_command(message: Message):
+    user_favorites = favorites_manager.get_favorites(message.from_user.id)
+
+    if not user_favorites:
+        await message.answer(
+            "😔 У тебя пока нет избранных фильмов.\n\n"
+            "Выбери жанр через /start и нажми ❤️ Add to favorites."
+        )
+        return
+
+    text = "❤️ <b>Твои избранные фильмы:</b>\n\n"
+
+    for index, movie in enumerate(user_favorites, start=1):
+        title = movie.get("title", "Unknown movie")
+        year = movie.get("year", "????")
+        rating = movie.get("rating", 0)
+
+        text += f"{index}. <b>{title}</b> ({year}) — ⭐ {rating}/10\n"
+
+    await message.answer(
+        text,
+        parse_mode="HTML",
+        reply_markup=get_favorites_keyboard(user_favorites)
     )
 
 
@@ -81,6 +112,46 @@ async def like_movie(callback: CallbackQuery):
         await callback.answer("❤️ Фильм добавлен в избранное!", show_alert=True)
     else:
         await callback.answer("Этот фильм уже есть в избранном.", show_alert=True)
+
+
+@dp.callback_query(F.data.startswith("remove_favorite_"))
+async def remove_favorite(callback: CallbackQuery):
+    movie_index = int(callback.data.split("_")[-1])
+
+    removed = favorites_manager.remove_movie_by_index(
+        callback.from_user.id,
+        movie_index
+    )
+
+    if not removed:
+        await callback.answer("Не удалось удалить фильм.", show_alert=True)
+        return
+
+    user_favorites = favorites_manager.get_favorites(callback.from_user.id)
+
+    if not user_favorites:
+        await callback.message.edit_text(
+            "😔 Список избранных фильмов пуст."
+        )
+        await callback.answer("Фильм удален.", show_alert=True)
+        return
+
+    text = "❤️ <b>Твои избранные фильмы:</b>\n\n"
+
+    for index, movie in enumerate(user_favorites, start=1):
+        title = movie.get("title", "Unknown movie")
+        year = movie.get("year", "????")
+        rating = movie.get("rating", 0)
+
+        text += f"{index}. <b>{title}</b> ({year}) — ⭐ {rating}/10\n"
+
+    await callback.message.edit_text(
+        text,
+        parse_mode="HTML",
+        reply_markup=get_favorites_keyboard(user_favorites)
+    )
+
+    await callback.answer("Фильм удален.", show_alert=True)
 
 
 async def show_movie(callback: CallbackQuery, genre_id: str, movie_index: int):
