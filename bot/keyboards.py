@@ -21,3 +21,26 @@ def get_genres_keyboard() -> InlineKeyboardMarkup:
         rows.append(row)
 
     return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def get_movie_keyboard(genre_id: str, movie_index: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="❤️ Add to favorites",
+                    callback_data=f"like_{genre_id}_{movie_index}"
+                ),
+                InlineKeyboardButton(
+                    text="🔄 Another movie",
+                    callback_data=f"next_{genre_id}_{movie_index + 1}"
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🎬 Change genre",
+                    callback_data="change_genre"
+                )
+            ]
+        ]
+    )
