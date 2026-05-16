@@ -5,12 +5,41 @@ import requests
 
 
 class MovieFetcher:
+    """
+    Handles communication with the TMDB API.
+
+    This class is responsible for:
+    - fetching movies by genre;
+    - fetching daily and weekly trending movies;
+    - filtering invalid movie data;
+    - formatting movie data for Telegram messages;
+    - handling API errors without crashing the bot.
+    """
+
     def __init__(self, api_key: str):
+        """
+        Initialize MovieFetcher with TMDB API key.
+
+        Args:
+            api_key: TMDB API key from environment variables.
+        """
         self.api_key = api_key
         self.base_url = "https://api.themoviedb.org/3"
         self.cache = {}
 
     def get_movies_by_genre(self, genre_id: str) -> list[dict[str, Any]]:
+        """
+        Get movies from TMDB by genre ID.
+
+        Movies are cached by genre to reduce repeated API requests.
+
+        Args:
+            genre_id: TMDB genre ID.
+
+        Returns:
+            A list of valid movie dictionaries. Returns an empty list if
+            the API request fails or no valid movies are found.
+        """
         if genre_id in self.cache:
             return self.cache[genre_id]
 
@@ -37,12 +66,33 @@ class MovieFetcher:
             return []
 
     def get_trending_movie(self) -> dict[str, Any] | None:
+        """
+        Get the daily trending movie.
+
+        Returns:
+            A movie dictionary if available, otherwise None.
+        """
         return self._get_trending_movie_by_period("day")
 
     def get_weekly_trending_movie(self) -> dict[str, Any] | None:
+        """
+        Get the weekly trending movie.
+
+        Returns:
+            A movie dictionary if available, otherwise None.
+        """
         return self._get_trending_movie_by_period("week")
 
     def _get_trending_movie_by_period(self, period: str) -> dict[str, Any] | None:
+        """
+        Get a trending movie by period.
+
+        Args:
+            period: Trending period. Must be either "day" or "week".
+
+        Returns:
+            The first valid trending movie, or None if the request fails.
+        """
         if period not in ("day", "week"):
             print(f"Invalid trending period: {period}")
             return None
@@ -85,6 +135,19 @@ class MovieFetcher:
             return None
 
     def _fetch_movies_from_api(self, genre_id: str) -> list[dict[str, Any]]:
+        """
+        Send request to TMDB discover endpoint.
+
+        Args:
+            genre_id: TMDB genre ID.
+
+        Returns:
+            Raw list of movie dictionaries from TMDB.
+
+        Raises:
+            requests.RequestException: If the HTTP request fails.
+            ValueError: If TMDB response has an unexpected format.
+        """
         url = f"{self.base_url}/discover/movie"
 
         params = {
@@ -112,6 +175,15 @@ class MovieFetcher:
         return results
 
     def _filter_valid_movies(self, movies: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """
+        Remove movies without title or overview.
+
+        Args:
+            movies: Raw movie list from TMDB.
+
+        Returns:
+            List of movies that have both title and overview.
+        """
         valid_movies = []
 
         for movie in movies:
@@ -129,6 +201,15 @@ class MovieFetcher:
         return valid_movies
 
     def format_movie(self, movie: dict[str, Any]) -> dict[str, Any]:
+        """
+        Format raw TMDB movie data for Telegram output.
+
+        Args:
+            movie: Raw movie dictionary from TMDB.
+
+        Returns:
+            A dictionary with title, overview, rating, year and poster URL.
+        """
         poster_path = movie.get("poster_path")
         release_date = movie.get("release_date") or "????"
         rating = movie.get("vote_average", 0)
