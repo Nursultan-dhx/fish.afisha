@@ -37,7 +37,7 @@ async def start_command(message: Message):
         "Я помогу тебе найти фильм по жанру.\n"
         "Выбери жанр из списка ниже:\n\n"
         "Доступные команды:\n"
-        "/start — выбрать жанр\n"
+        "/start — выбрать жанр фильма\n"
         "/favorites — избранные фильмы\n"
         "/trending — фильм дня\n"
         "/weekly — фильм недели",
@@ -52,14 +52,14 @@ async def favorites_command(message: Message):
     if not user_favorites:
         await message.answer(
             "😔 У тебя пока нет избранных фильмов.\n\n"
-            "Выбери жанр через /start и нажми ❤️ Add to favorites."
+            "Выбери жанр через /start и нажми ❤️ В избранное."
         )
         return
 
     text = "❤️ <b>Твои избранные фильмы:</b>\n\n"
 
     for index, movie in enumerate(user_favorites, start=1):
-        title = movie.get("title", "Unknown movie")
+        title = movie.get("title", "Неизвестный фильм")
         year = movie.get("year", "????")
         rating = movie.get("rating", 0)
 
@@ -237,7 +237,7 @@ async def remove_favorite(callback: CallbackQuery):
     text = "❤️ <b>Твои избранные фильмы:</b>\n\n"
 
     for index, movie in enumerate(user_favorites, start=1):
-        title = movie.get("title", "Unknown movie")
+        title = movie.get("title", "Неизвестный фильм")
         year = movie.get("year", "????")
         rating = movie.get("rating", 0)
 
@@ -256,7 +256,8 @@ async def remove_favorite(callback: CallbackQuery):
 async def photo_message_handler(message: Message):
     await message.answer(
         "📸 Я получил изображение.\n\n"
-        "Сейчас я подбираю фильмы по жанрам. Используй /start, чтобы выбрать жанр."
+        "Пока я не анализирую фото, но могу помочь выбрать фильм.\n"
+        "Используй /start, чтобы открыть список жанров."
     )
 
 
@@ -264,10 +265,11 @@ async def photo_message_handler(message: Message):
 async def text_message_handler(message: Message):
     await message.answer(
         "💬 Я получил твое сообщение.\n\n"
-        "Чтобы начать подбор фильма, используй команду /start.\n"
-        "Чтобы посмотреть избранные фильмы, используй /favorites.\n"
-        "Чтобы получить фильм дня, используй /trending.\n"
-        "Чтобы получить фильм недели, используй /weekly."
+        "Я понимаю команды и кнопки меню:\n"
+        "/start — выбрать жанр фильма\n"
+        "/favorites — избранные фильмы\n"
+        "/trending — фильм дня\n"
+        "/weekly — фильм недели"
     )
 
 

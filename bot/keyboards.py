@@ -28,17 +28,17 @@ def get_movie_keyboard(genre_id: str, movie_index: int) -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="❤️ Add to favorites",
+                    text="❤️ В избранное",
                     callback_data=f"like_{genre_id}_{movie_index}"
                 ),
                 InlineKeyboardButton(
-                    text="🔄 Another movie",
+                    text="🔄 Другой фильм",
                     callback_data=f"next_{genre_id}_{movie_index + 1}"
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text="🎬 Change genre",
+                    text="🎬 Сменить жанр",
                     callback_data="change_genre"
                 )
             ]
@@ -50,12 +50,12 @@ def get_favorites_keyboard(favorites: list[dict]) -> InlineKeyboardMarkup:
     rows = []
 
     for index, movie in enumerate(favorites):
-        title = movie.get("title", "Unknown movie")
+        title = movie.get("title", "Неизвестный фильм")
 
         rows.append(
             [
                 InlineKeyboardButton(
-                    text=f"🗑 Remove {index + 1}. {title[:25]}",
+                    text=f"🗑 Удалить {index + 1}. {title[:25]}",
                     callback_data=f"remove_favorite_{index}"
                 )
             ]
@@ -64,7 +64,7 @@ def get_favorites_keyboard(favorites: list[dict]) -> InlineKeyboardMarkup:
     rows.append(
         [
             InlineKeyboardButton(
-                text="🎬 Choose genre",
+                text="🎬 Выбрать жанр",
                 callback_data="change_genre"
             )
         ]
