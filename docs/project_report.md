@@ -2,186 +2,99 @@
 
 ## 1. Problem Statement
 
-Many users spend a lot of time choosing what movie to watch. They may not know which movie is popular now, which movie fits their preferred genre, or how to save interesting movies for later. The goal of this project is to create a Telegram bot that helps users quickly find movie recommendations, view trending movies, and manage a personal list of favorite movies.
-
-Fish Afisha Bot solves this problem by providing a simple Telegram interface where users can choose a movie genre, receive recommendations from the TMDB API, view daily and weekly trending movies, and save selected movies to a local JSON file.
+Many users spend too much time choosing what movie to watch. They may not know which movie is popular, which movie fits their preferred genre, or how to save interesting movies for later. The goal of Fish Afisha Bot is to help users quickly find movie recommendations directly inside Telegram.
 
 ## 2. Solution Overview
 
-Fish Afisha Bot is a Telegram bot built with Python and aiogram. The bot interacts with users through commands and inline keyboards. Users can select genres, receive movie recommendations, add movies to favorites, view saved movies, and remove movies from favorites.
+Fish Afisha Bot is a Telegram bot built with Python and aiogram. The bot uses the TMDB API to get real movie data, including titles, descriptions, ratings, release years, posters, and trending movies.
 
-The project uses the TMDB API to get real movie information, including movie titles, descriptions, ratings, release years, and posters. Favorite movies are stored locally in a JSON file, which demonstrates data persistence.
+Users can choose a movie genre, receive recommendations, view the movie of the day and movie of the week, add movies to favorites, view saved favorites, and remove movies from the list. Favorite movies are stored locally in a JSON file.
 
-Main bot commands:
+Main commands:
 
 - `/start` — opens the genre selection menu.
-- `/favorites` — shows the user's saved favorite movies.
-- `/trending` — shows the trending movie of the day.
-- `/weekly` — shows the trending movie of the week.
+- `/favorites` — shows saved favorite movies.
+- `/trending` — shows the daily trending movie.
+- `/weekly` — shows the weekly trending movie.
 
-The bot also handles regular text messages and image messages, so it supports different message types required for a Telegram bot project.
+The bot also handles regular text messages and image messages, which satisfies the requirement for handling different Telegram message types.
 
-## 3. Simple System Design
+## 3. System Design
 
-The project is divided into several modules to keep the code clean and organized.
+The project is divided into modules to keep the code clean and maintainable.
 
 ```text
 fish.afisha/
-│
 ├── bot/
 │   ├── config.py
 │   ├── genres.py
 │   ├── keyboards.py
 │   ├── main.py
-│   │
-│   ├── services/
-│   │   └── movie_fetcher.py
-│   │
-│   └── storage/
-│       └── favorites_manager.py
-│
-├── data/
-│   └── favorites.example.json
-│
-├── tests/
-│   └── test_favorites_manager.py
-│
+│   ├── services/movie_fetcher.py
+│   └── storage/favorites_manager.py
+├── data/favorites.example.json
+├── tests/test_favorites_manager.py
 ├── README.md
-├── requirements.txt
-└── .env.example
+└── requirements.txt
 ```
 
-### Main Components
+Main components:
 
-### Telegram Bot Layer
+- `bot/main.py` — Telegram commands, message handlers, callback handlers, and bot startup.
+- `bot/keyboards.py` — inline keyboards for genres, movie actions, and favorites.
+- `bot/services/movie_fetcher.py` — TMDB API logic and movie formatting.
+- `bot/storage/favorites_manager.py` — JSON storage logic for favorite movies.
+- `tests/test_favorites_manager.py` — unit tests for storage functionality.
 
-The file `bot/main.py` contains the main Telegram bot logic:
+## 4. OOP, Data Persistence, and Error Handling
 
-- command handlers;
-- callback handlers;
-- text message handling;
-- photo message handling;
-- integration between user actions and backend services.
+The project uses object-oriented programming to separate responsibilities:
 
-### Keyboard Layer
+- `MovieFetcher` handles TMDB API requests, daily and weekly trending movies, movie filtering, and movie formatting.
+- `StorageManager` is a base class for JSON file operations.
+- `FavoritesManager` inherits from `StorageManager` and manages users' favorite movies.
 
-The file `bot/keyboards.py` contains inline keyboard generation:
+The inheritance between `StorageManager` and `FavoritesManager` demonstrates an advanced OOP concept.
 
-- genre selection keyboard;
-- movie action buttons;
-- favorites removal buttons.
+Data persistence is implemented through JSON. Runtime favorite movies are stored in `data/favorites.json`, while GitHub stores only `data/favorites.example.json` to avoid committing real Telegram user IDs.
 
-### API Layer
+The project includes exception handling for missing environment variables, failed API requests, invalid API responses, missing or invalid JSON files, storage save errors, and invalid favorite indexes. This prevents the bot from crashing during normal usage and live demonstration.
 
-The file `bot/services/movie_fetcher.py` contains the `MovieFetcher` class. This class is responsible for:
+## 5. Testing
 
-- fetching movies by genre from TMDB;
-- fetching daily trending movies;
-- fetching weekly trending movies;
-- formatting movie data;
-- handling API errors.
+The project uses `pytest` for unit testing. The tests verify that the favorites storage manager can:
 
-### Storage Layer
+- return an empty list for a new user;
+- add movies to favorites;
+- prevent duplicate movies;
+- check if a movie exists;
+- remove movies by index;
+- reject invalid indexes;
+- clear favorites;
+- reject movies without a title.
 
-The file `bot/storage/favorites_manager.py` contains the storage classes:
-
-- `StorageManager` — base class for JSON file operations;
-- `FavoritesManager` — child class for favorite movie operations.
-
-This demonstrates inheritance, which is an advanced OOP concept.
-
-### Testing Layer
-
-The `tests/` folder contains unit tests for the favorites manager. The tests check adding movies, preventing duplicates, removing movies, clearing favorites, and handling invalid data.
-
-## 4. Object-Oriented Programming
-
-The project uses classes and objects to organize the logic.
-
-### MovieFetcher
-
-`MovieFetcher` handles all TMDB API operations. It keeps API logic separate from Telegram handlers.
-
-### StorageManager
-
-`StorageManager` is a base class that provides common JSON file operations such as loading and saving data.
-
-### FavoritesManager
-
-`FavoritesManager` inherits from `StorageManager`. It manages user favorite movies and provides methods for:
-
-- adding movies;
-- checking duplicates;
-- getting favorite movies;
-- removing movies by index;
-- clearing favorites.
-
-This inheritance structure demonstrates an advanced OOP concept.
-
-## 5. Data Persistence
-
-The project uses JSON file storage for favorite movies. Runtime data is stored in:
+The current test result is:
 
 ```text
-data/favorites.json
+9 passed
 ```
 
-This file is ignored by Git because it can contain real Telegram user IDs and test data.
+## 6. Challenges Faced
 
-The repository includes an example file:
+The team faced several challenges during development:
 
-```text
-data/favorites.example.json
-```
+1. Creating a clean GitHub commit history that shows contributions from both members.
+2. Moving bot tokens and API keys to `.env` to avoid exposing secrets.
+3. Separating real runtime data from example JSON files.
+4. Handling Telegram callback buttons for genre selection, movie actions, favorites, and removal.
+5. Adding error handling for TMDB API requests and JSON storage.
+6. Keeping the project modular and easy to explain during defense.
 
-The bot can read from and write to JSON, which satisfies the data persistence requirement.
-
-## 6. Robustness and Error Handling
-
-The project includes exception handling to prevent crashes.
-
-Examples of handled situations:
-
-- missing environment variables;
-- failed TMDB API requests;
-- invalid TMDB API responses;
-- missing JSON storage file;
-- invalid JSON content;
-- invalid favorite movie indexes;
-- empty favorite lists;
-- missing movie data.
-
-If an error happens, the bot returns a user-friendly message instead of crashing.
-
-## 7. Challenges Faced
-
-During the project development, the team faced several challenges:
-
-1. **Git and GitHub workflow**  
-   The team needed to create a clean commit history and show the contribution of both members.
-
-2. **Environment variables**  
-   Bot tokens and API keys had to be moved to `.env` to avoid exposing sensitive data in GitHub.
-
-3. **JSON storage management**  
-   The team had to separate real runtime data from example data and ignore `favorites.json` in Git.
-
-4. **Telegram callback handling**  
-   The bot needed to correctly process different callback buttons, including genre selection, next movie, adding to favorites, and removing from favorites.
-
-5. **API error handling**  
-   TMDB API requests needed exception handling to avoid crashes if the API was unavailable or returned unexpected data.
-
-6. **Project structure**  
-   The project was divided into modules to improve readability and maintainability.
-
-## 8. Team Contributions
+## 7. Team Contributions
 
 ### Nursultan
 
-Nursultan was responsible for the Telegram bot interface and user interaction.
-
-Main contributions:
+Nursultan was responsible for the Telegram bot interface and user interaction:
 
 - initial bot setup;
 - command handlers;
@@ -190,9 +103,7 @@ Main contributions:
 - genre selection interface;
 - movie recommendation flow;
 - favorite movie buttons;
-- `/favorites` command;
-- `/trending` command;
-- `/weekly` command;
+- `/favorites`, `/trending`, and `/weekly` commands;
 - text and photo message handlers;
 - bot command menu;
 - user message improvements;
@@ -200,15 +111,12 @@ Main contributions:
 
 ### Dastan
 
-Dastan was responsible for backend logic, API integration, storage, OOP structure, and testing.
-
-Main contributions:
+Dastan was responsible for backend logic, API integration, storage, OOP structure, and testing:
 
 - movie genre data structure;
 - TMDB API integration;
 - `MovieFetcher` class;
-- daily trending movie fetcher;
-- weekly trending movie fetcher;
+- daily and weekly trending movie fetchers;
 - API error handling;
 - JSON storage logic;
 - `StorageManager` and `FavoritesManager` classes;
@@ -217,41 +125,8 @@ Main contributions:
 - unit tests for favorites manager;
 - API and storage module documentation.
 
-## 9. Testing
+## 8. Conclusion
 
-The project uses `pytest` for unit testing.
+Fish Afisha Bot is a functional Telegram bot that helps users find movies by genre, view trending movies, and save favorite movies. The project uses Python, aiogram, TMDB API, JSON storage, OOP, exception handling, modular structure, and unit tests.
 
-The tests are located in:
-
-```text
-tests/test_favorites_manager.py
-```
-
-The tests check:
-
-- getting empty favorites;
-- adding movies;
-- preventing duplicate movies;
-- checking if a movie exists;
-- removing movies by index;
-- handling invalid indexes;
-- clearing favorites;
-- rejecting movies without a title.
-
-To run tests:
-
-```bash
-python -m pytest
-```
-
-Expected result:
-
-```text
-9 passed
-```
-
-## 10. Conclusion
-
-Fish Afisha Bot is a functional Telegram bot that helps users find movies by genre, view trending movies, and save favorite movies. The project uses Python, aiogram, TMDB API, JSON storage, OOP, exception handling, modular code structure, and unit tests.
-
-The project meets the main technical requirements for the final project and demonstrates teamwork through a clear division of responsibilities and a structured Git commit history.
+The project meets the main final project requirements and demonstrates teamwork through clear role division and a structured Git commit history.
