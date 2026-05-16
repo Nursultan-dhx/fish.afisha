@@ -25,8 +25,10 @@ async def start_command(message: Message):
         "👋 Привет! Это Fish Afisha Bot.\n\n"
         "Я помогу тебе найти фильм по жанру.\n"
         "Выбери жанр из списка ниже:\n\n"
-        "Также ты можешь использовать команду /favorites, "
-        "чтобы посмотреть избранные фильмы.",
+        "Доступные команды:\n"
+        "/start — выбрать жанр\n"
+        "/favorites — избранные фильмы\n"
+        "/trending — фильм дня",
         reply_markup=get_genres_keyboard()
     )
 
@@ -56,6 +58,47 @@ async def favorites_command(message: Message):
         parse_mode="HTML",
         reply_markup=get_favorites_keyboard(user_favorites)
     )
+
+
+@dp.message(Command("trending"))
+async def trending_command(message: Message):
+    if movie_fetcher is None:
+        await message.answer(
+            "😔 Сервис фильмов временно недоступен. Попробуй позже."
+        )
+        return
+
+    movie = movie_fetcher.get_trending_movie()
+
+    if not movie:
+        await message.answer(
+            "😔 Не удалось получить фильм дня.\n"
+            "Попробуй позже или выбери жанр через /start."
+        )
+        return
+
+    formatted_movie = movie_fetcher.format_movie(movie)
+
+    text = (
+        f"🔥 <b>Фильм дня</b>\n\n"
+        f"🎬 <b>{formatted_movie['title']}</b> ({formatted_movie['year']})\n"
+        f"⭐ Рейтинг: {formatted_movie['rating']}/10\n\n"
+        f"{formatted_movie['overview']}"
+    )
+
+    poster_url = formatted_movie["poster_url"]
+
+    if poster_url:
+        await message.answer_photo(
+            photo=poster_url,
+            caption=text,
+            parse_mode="HTML"
+        )
+    else:
+        await message.answer(
+            text,
+            parse_mode="HTML"
+        )
 
 
 @dp.callback_query(F.data == "change_genre")
@@ -160,9 +203,7 @@ async def remove_favorite(callback: CallbackQuery):
 async def photo_message_handler(message: Message):
     await message.answer(
         "📸 Я получил изображение.\n\n"
-        "Пока я не анализирую фото, но это сообщение показывает, "
-        "что бот умеет обрабатывать изображения.\n\n"
-        "Чтобы найти фильм, используй /start."
+        "Сейчас я подбираю фильмы по жанрам. Используй /start, чтобы выбрать жанр."
     )
 
 
@@ -171,7 +212,8 @@ async def text_message_handler(message: Message):
     await message.answer(
         "💬 Я получил твое сообщение.\n\n"
         "Чтобы начать подбор фильма, используй команду /start.\n"
-        "Чтобы посмотреть избранные фильмы, используй /favorites."
+        "Чтобы посмотреть избранные фильмы, используй /favorites.\n"
+        "Чтобы получить фильм дня, используй /trending."
     )
 
 
