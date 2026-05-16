@@ -37,8 +37,18 @@ class MovieFetcher:
             return []
 
     def get_trending_movie(self) -> dict[str, Any] | None:
+        return self._get_trending_movie_by_period("day")
+
+    def get_weekly_trending_movie(self) -> dict[str, Any] | None:
+        return self._get_trending_movie_by_period("week")
+
+    def _get_trending_movie_by_period(self, period: str) -> dict[str, Any] | None:
+        if period not in ("day", "week"):
+            print(f"Invalid trending period: {period}")
+            return None
+
         try:
-            url = f"{self.base_url}/trending/movie/day"
+            url = f"{self.base_url}/trending/movie/{period}"
             params = {
                 "api_key": self.api_key,
                 "language": "ru-RU",
@@ -65,51 +75,13 @@ class MovieFetcher:
             return filtered_movies[0]
 
         except requests.RequestException as error:
-            print(f"TMDB trending request error: {error}")
+            print(f"TMDB trending {period} request error: {error}")
             return None
         except ValueError as error:
-            print(f"TMDB trending response error: {error}")
+            print(f"TMDB trending {period} response error: {error}")
             return None
         except Exception as error:
-            print(f"Unexpected trending movie error: {error}")
-            return None
-
-    def get_weekly_trending_movie(self) -> dict[str, Any] | None:
-        try:
-            url = f"{self.base_url}/trending/movie/week"
-            params = {
-                "api_key": self.api_key,
-                "language": "ru-RU",
-            }
-
-            response = requests.get(url, params=params, timeout=5)
-            response.raise_for_status()
-
-            data = response.json()
-
-            if not isinstance(data, dict):
-                raise ValueError("Invalid TMDB weekly trending response format")
-
-            results = data.get("results", [])
-
-            if not isinstance(results, list):
-                raise ValueError("Invalid TMDB weekly trending results format")
-
-            filtered_movies = self._filter_valid_movies(results)
-
-            if not filtered_movies:
-                return None
-
-            return filtered_movies[0]
-
-        except requests.RequestException as error:
-            print(f"TMDB weekly trending request error: {error}")
-            return None
-        except ValueError as error:
-            print(f"TMDB weekly trending response error: {error}")
-            return None
-        except Exception as error:
-            print(f"Unexpected weekly trending movie error: {error}")
+            print(f"Unexpected trending {period} movie error: {error}")
             return None
 
     def _fetch_movies_from_api(self, genre_id: str) -> list[dict[str, Any]]:
