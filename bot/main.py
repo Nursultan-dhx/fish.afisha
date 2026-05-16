@@ -24,7 +24,9 @@ async def start_command(message: Message):
     await message.answer(
         "👋 Привет! Это Fish Afisha Bot.\n\n"
         "Я помогу тебе найти фильм по жанру.\n"
-        "Выбери жанр из списка ниже:",
+        "Выбери жанр из списка ниже:\n\n"
+        "Также ты можешь использовать команду /favorites, "
+        "чтобы посмотреть избранные фильмы.",
         reply_markup=get_genres_keyboard()
     )
 
@@ -152,6 +154,25 @@ async def remove_favorite(callback: CallbackQuery):
     )
 
     await callback.answer("Фильм удален.", show_alert=True)
+
+
+@dp.message(F.photo)
+async def photo_message_handler(message: Message):
+    await message.answer(
+        "📸 Я получил изображение.\n\n"
+        "Пока я не анализирую фото, но это сообщение показывает, "
+        "что бот умеет обрабатывать изображения.\n\n"
+        "Чтобы найти фильм, используй /start."
+    )
+
+
+@dp.message(F.text)
+async def text_message_handler(message: Message):
+    await message.answer(
+        "💬 Я получил твое сообщение.\n\n"
+        "Чтобы начать подбор фильма, используй команду /start.\n"
+        "Чтобы посмотреть избранные фильмы, используй /favorites."
+    )
 
 
 async def show_movie(callback: CallbackQuery, genre_id: str, movie_index: int):
