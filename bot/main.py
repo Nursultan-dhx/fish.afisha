@@ -28,7 +28,8 @@ async def start_command(message: Message):
         "Доступные команды:\n"
         "/start — выбрать жанр\n"
         "/favorites — избранные фильмы\n"
-        "/trending — фильм дня",
+        "/trending — фильм дня\n"
+        "/weekly — фильм недели",
         reply_markup=get_genres_keyboard()
     )
 
@@ -81,6 +82,47 @@ async def trending_command(message: Message):
 
     text = (
         f"🔥 <b>Фильм дня</b>\n\n"
+        f"🎬 <b>{formatted_movie['title']}</b> ({formatted_movie['year']})\n"
+        f"⭐ Рейтинг: {formatted_movie['rating']}/10\n\n"
+        f"{formatted_movie['overview']}"
+    )
+
+    poster_url = formatted_movie["poster_url"]
+
+    if poster_url:
+        await message.answer_photo(
+            photo=poster_url,
+            caption=text,
+            parse_mode="HTML"
+        )
+    else:
+        await message.answer(
+            text,
+            parse_mode="HTML"
+        )
+
+
+@dp.message(Command("weekly"))
+async def weekly_trending_command(message: Message):
+    if movie_fetcher is None:
+        await message.answer(
+            "😔 Сервис фильмов временно недоступен. Попробуй позже."
+        )
+        return
+
+    movie = movie_fetcher.get_weekly_trending_movie()
+
+    if not movie:
+        await message.answer(
+            "😔 Не удалось получить фильм недели.\n"
+            "Попробуй позже или выбери жанр через /start."
+        )
+        return
+
+    formatted_movie = movie_fetcher.format_movie(movie)
+
+    text = (
+        f"🏆 <b>Фильм недели</b>\n\n"
         f"🎬 <b>{formatted_movie['title']}</b> ({formatted_movie['year']})\n"
         f"⭐ Рейтинг: {formatted_movie['rating']}/10\n\n"
         f"{formatted_movie['overview']}"
@@ -213,7 +255,8 @@ async def text_message_handler(message: Message):
         "💬 Я получил твое сообщение.\n\n"
         "Чтобы начать подбор фильма, используй команду /start.\n"
         "Чтобы посмотреть избранные фильмы, используй /favorites.\n"
-        "Чтобы получить фильм дня, используй /trending."
+        "Чтобы получить фильм дня, используй /trending.\n"
+        "Чтобы получить фильм недели, используй /weekly."
     )
 
 
