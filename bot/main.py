@@ -2,7 +2,7 @@ import asyncio
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import BotCommand, CallbackQuery, Message
 
 from bot.config import load_config
 from bot.keyboards import (
@@ -17,6 +17,17 @@ from bot.storage.favorites_manager import FavoritesManager
 dp = Dispatcher()
 movie_fetcher = None
 favorites_manager = FavoritesManager("data/favorites.json")
+
+
+async def set_bot_commands(bot: Bot) -> None:
+    commands = [
+        BotCommand(command="start", description="Выбрать жанр фильма"),
+        BotCommand(command="favorites", description="Мои избранные фильмы"),
+        BotCommand(command="trending", description="Фильм дня"),
+        BotCommand(command="weekly", description="Фильм недели"),
+    ]
+
+    await bot.set_my_commands(commands)
 
 
 @dp.message(Command("start"))
@@ -305,6 +316,8 @@ async def main():
 
     bot = Bot(token=config["BOT_TOKEN"])
     movie_fetcher = MovieFetcher(config["TMDB_API_KEY"])
+
+    await set_bot_commands(bot)
 
     print("Bot started...")
     await dp.start_polling(bot)
